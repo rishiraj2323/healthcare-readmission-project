@@ -34,6 +34,7 @@ Healthcare data carries unique responsibilities, even when public and de-identif
 - Identified and handled missing data (`weight`, `max_glu_serum`, `payer_code` dropped due to >40–97% missingness; `race`, `medical_specialty` imputed as "Unknown")
 - Found strong class imbalance in the target (~11% positive class)
 - Key EDA insight: readmission rate increases steadily with the number of prior inpatient visits — the single strongest behavioral signal in the data
+- ![EDA Insights](readmission_eda_plots.png)
 
 ### 2. Feature Engineering
 - Mapped raw ICD-9 diagnosis codes (700+ unique values across `diag_1/2/3`) into 9 clinically meaningful categories (Circulatory, Respiratory, Digestive, Diabetes, Injury, Musculoskeletal, Genitourinary, Neoplasms, Other)
