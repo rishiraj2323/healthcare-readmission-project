@@ -1,0 +1,29 @@
+from flask import Flask, request, jsonify, render_template_string
+import joblib
+import pandas as pd
+
+app = Flask(__name__)
+
+model = joblib.load('healthcare_readmission_model.pkl')
+model_columns = joblib.load('model_columns.pkl')  # column order save karenge next step mein
+
+@app.route('/')
+def home():
+    return "Healthcare Readmission Risk Prediction API is running."
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
+    input_df = pd.DataFrame([data])
+    input_df = input_df.reindex(columns=model_columns, fill_value=0)
+    
+    proba = model.predict_proba(input_df)[:, 1][0]
+    prediction = "High Risk" if proba >= 0.5 else "Low Risk"
+    
+    return jsonify({
+        "readmission_risk": prediction,
+        "probability": round(float(proba), 4)
+    })
+
+if __name__ == '__main__':
+    app.run(debug=True)
