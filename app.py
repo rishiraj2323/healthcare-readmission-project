@@ -25,42 +25,41 @@ button { margin-top: 20px; padding: 10px 20px; background: #2c7be5; color: white
 <form method="POST">
   <label>Age Group</label>
   <select name="age">
-    <option value="[0-10)">0-10</option><option value="[10-20)">10-20</option>
-    <option value="[20-30)">20-30</option><option value="[30-40)">30-40</option>
-    <option value="[40-50)">40-50</option><option value="[50-60)" selected>50-60</option>
-    <option value="[60-70)">60-70</option><option value="[70-80)">70-80</option>
-    <option value="[80-90)">80-90</option><option value="[90-100)">90-100</option>
+    {% for val, label in [("[0-10)","0-10"),("[10-20)","10-20"),("[20-30)","20-30"),("[30-40)","30-40"),("[40-50)","40-50"),("[50-60)","50-60"),("[60-70)","60-70"),("[70-80)","70-80"),("[80-90)","80-90"),("[90-100)","90-100")] %}
+    <option value="{{ val }}" {% if form_data.age == val %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
   </select>
 
   <label>Time in Hospital (days)</label>
-  <input type="number" name="time_in_hospital" value="3" min="1" max="14">
+  <input type="number" name="time_in_hospital" value="{{ form_data.time_in_hospital }}" min="1" max="14">
 
   <label>Number of Lab Procedures</label>
-  <input type="number" name="num_lab_procedures" value="44">
+  <input type="number" name="num_lab_procedures" value="{{ form_data.num_lab_procedures }}">
 
   <label>Number of Medications</label>
-  <input type="number" name="num_medications" value="16">
+  <input type="number" name="num_medications" value="{{ form_data.num_medications }}">
 
   <label>Prior Inpatient Visits</label>
-  <input type="number" name="number_inpatient" value="0">
+  <input type="number" name="number_inpatient" value="{{ form_data.number_inpatient }}">
 
   <label>Prior Emergency Visits</label>
-  <input type="number" name="number_emergency" value="0">
+  <input type="number" name="number_emergency" value="{{ form_data.number_emergency }}">
 
   <label>Number of Diagnoses</label>
-  <input type="number" name="number_diagnoses" value="7">
+  <input type="number" name="number_diagnoses" value="{{ form_data.number_diagnoses }}">
 
   <label>Primary Diagnosis Category</label>
   <select name="diag_1_cat">
-    <option value="Circulatory">Circulatory</option><option value="Respiratory">Respiratory</option>
-    <option value="Digestive">Digestive</option><option value="Diabetes">Diabetes</option>
-    <option value="Injury">Injury</option><option value="Musculoskeletal">Musculoskeletal</option>
-    <option value="Genitourinary">Genitourinary</option><option value="Neoplasms">Neoplasms</option>
-    <option value="Other">Other</option>
+    {% for val in ["Circulatory","Respiratory","Digestive","Diabetes","Injury","Musculoskeletal","Genitourinary","Neoplasms","Other"] %}
+    <option value="{{ val }}" {% if form_data.diag_1_cat == val %}selected{% endif %}>{{ val }}</option>
+    {% endfor %}
   </select>
 
   <label>On Diabetes Medication?</label>
-  <select name="diabetesMed"><option value="Yes">Yes</option><option value="No">No</option></select>
+  <select name="diabetesMed">
+    <option value="Yes" {% if form_data.diabetesMed == "Yes" %}selected{% endif %}>Yes</option>
+    <option value="No" {% if form_data.diabetesMed == "No" %}selected{% endif %}>No</option>
+  </select>
 
   <button type="submit">Predict Risk</button>
 </form>
@@ -72,12 +71,20 @@ button { margin-top: 20px; padding: 10px 20px; background: #2c7be5; color: white
 </html>
 """
 
+DEFAULT_FORM = {
+    'age': '[50-60)', 'time_in_hospital': 3, 'num_lab_procedures': 44,
+    'num_medications': 16, 'number_inpatient': 0, 'number_emergency': 0,
+    'number_diagnoses': 7, 'diag_1_cat': 'Circulatory', 'diabetesMed': 'Yes'
+}
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     result = None
     prob = None
+    form_data = DEFAULT_FORM.copy()
+
     if request.method == 'POST':
-        data = {
+        form_data = {
             'age': request.form['age'],
             'time_in_hospital': int(request.form['time_in_hospital']),
             'num_lab_procedures': int(request.form['num_lab_procedures']),
@@ -88,7 +95,7 @@ def home():
             'diag_1_cat': request.form['diag_1_cat'],
             'diabetesMed': request.form['diabetesMed'],
         }
-        input_df = pd.DataFrame([data])
+        input_df = pd.DataFrame([form_data])
         input_encoded = pd.get_dummies(input_df)
         input_final = input_encoded.reindex(columns=model_columns, fill_value=0)
 
@@ -96,7 +103,7 @@ def home():
         result = "High Risk" if proba >= 0.5 else "Low Risk"
         prob = round(float(proba), 4)
 
-    return render_template_string(FORM_HTML, result=result, prob=prob)
+    return render_template_string(FORM_HTML, result=result, prob=prob, form_data=form_data)
 
 @app.route('/predict', methods=['POST'])
 def predict():
