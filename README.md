@@ -99,5 +99,3 @@ print(response.json())
 - Could explore SHAP-based interpretability, additional feature engineering on medication change patterns, and threshold tuning for different cost-sensitivity scenarios
 
 ---
-
-*Built as part of a 3-project data science portfolio spanning fintech, e-commerce, and healthcare domains.*
